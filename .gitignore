@@ -1,55 +1,69 @@
-# Prerequisites
-*.d
+# ==========================================
+# Keil µVision Output Directories
+# ==========================================
+Objects/
+Listings/
+build/
+RTE/
 
-# Object files
+# ==========================================
+# Keil µVision Output Files
+# ==========================================
+# Compiled Object & Dependency Files
 *.o
-*.ko
-*.obj
+*.d
+*.crf
+*.i
+
+# Output Binaries & Executables
+*.axf
 *.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
 *.hex
+*.bin
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# Linker & Build Reports
+*.htm
+*.map
+*.lst
+*.m51
+*.m66
+*.sct.bak
+*.dep
+*.build_log.htm
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# ==========================================
+# Keil User & Temporary Configuration Settings
+# ==========================================
+# Local Window & Debugger State Files
+*.uvopt
+*.uvoptx
+*.uvgui.*
+*.uvgui_*
 
-# debug information files
-*.dwo
+# Temporary & Backup Files
+*.bak
+*.sav
+*.scr
+*.ini
+*.stat
+*.scvd
+
+# J-Link / ST-Link Debugger Logs
+JLinkLog.txt
+*.log
+
+# ==========================================
+# OS Generated Files & Editor Workspaces
+# ==========================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE & Editor Settings
+.vscode/
+.idea/
+*.swp
