@@ -1,80 +1,89 @@
+/* Final Project Files
+ * Filename: ble_uart.c
+ * Author: Mrunalini Desai
+ * Date: 11/04/2026
+ *
+ * Description: Implements functions for BLE UART communication.
+ */
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/uart.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/sysctl.h"
 #include "ble_uart.h"
 
-/*
- * UART ISR writes at rx_head; the main loop consumes at rx_tail.
- * The ISR only moves bytes. It does not parse commands or change BCM outputs.
- */
-static int16_t current_rssi = -100;
-static bool device_connected = false;
-static bool proximity_detected = false;
-
-static void BLE_ProcessRxChar(uint8_t rx_char)
+void BT_Init(uint32_t systemClockHz)
 {
-    /*
-     * TODO: assemble the Bluefruit UART response from buffered characters.
-     * When a complete response is recognized:
-     *   - set device_connected on connect/disconnect events
-     *   - parse RSSI and call BLE_UpdateRSSI()
-     *   - report malformed/unknown responses through the debug UART if needed
-     */
-    (void)rx_char;
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+
+    while (!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOB))
+    {
+        // not ready condition
+    }
+
+    while (!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOC))
+    {
+        // not ready condition
+    }
+
+    while (!SysCtlPeripheralReady(SYSCTL_PERIPH_UART1))
+    {
+        // not ready condition
+    }
+
+    GPIOPinConfigure(GPIO_PB0_U1RX);
+    GPIOPinConfigure(GPIO_PB1_U1TX);
+    GPIOPinTypeUART(GPIO_PORTB_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+
+    GPIOPinConfigure(GPIO_PC4_U1RTS);
+    GPIOPinConfigure(GPIO_PC5_U1CTS);
+    GPIOPinTypeUART(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_5);
+
+    UARTConfigSetExpClk(UART1_BASE, systemClockHz, 9600, 
+                        UART_CONFIG_WLEN_8 |
+                        UART_CONFIG_STOP_ONE |
+                        UART_CONFIG_PAR_NONE);
+
+    UARTFlowControlSet(UART1_BASE, 
+                       UART_FLOWCONTROL_TX |
+                       UART_FLOWCONTROL_RX);   
 }
 
-static void BLE_UpdateRSSI(int16_t rssi_dbm)
+bool BT_RX_Available(void)
 {
-    current_rssi = rssi_dbm;
-
-    /* Note: Require multiple reads so that a single noisy RSSI sample won't affect the proximity
-     detection. */
-  
+    return UARTCharsAvail(UART1_BASE);
 }
 
-void BLE_UART_Init(void)
+uint8_t BT_RX_Read(void)
 {
-    /*
-     * TODO: configure UART1 and Port B for the project diagram's PB0/PB1.
-     * Confirm the LaunchPad header mapping and module TX/RX connections.
-     * Select the actual module baud rate; 
-     * Enable RX/receive-timeout interrupts after the receive buffer is ready.
-     */
+    return (uint8_t)UARTCharGet(UART1_BASE);
 }
 
-void BLE_UART_OnByteReceived(uint8_t rx_char)
+void BT_TX_Byte(uint8_t byte)
 {
-    /* Drop new data rather than overwrite unread bytes if the buffer is full. */
-	(void)rx_char;
+    UARTCharPut(UART1_BASE, byte);
 }
 
-void BLE_UART_ProcessRx(void)
+void BT_TX_String(const char *text)
 {
-    /* TODO: Drain the RX ring buffer and pass each byte to BLE_ProcessRxChar() for parsing. */
+    while (*text != '\0')
+    {
+        BT_TX_Byte((uint8_t)*text);
+        text++;
+    }
 }
 
-void UART1_Handler(void)
+bool BT_TX_TryByte(uint8_t byte)
 {
-    /*
-     * TODO: read/clear UART1 interrupt status using the selected device header.
-     * For each received byte, call BLE_UART_OnByteReceived(rx_char).
-     */
+    return UARTCharPutNonBlocking(UART1_BASE, byte);
 }
 
-bool BLE_IsProximityDetected(void)
+bool BT_TX_Busy(void)
 {
-    return device_connected && proximity_detected;
+    return UARTBusy(UART1_BASE);
 }
-
-int16_t BLE_GetLatestRSSI(void)
-{
-    return current_rssi;
-}
-
-bool BLE_IsConnected(void)
-{
-    return device_connected;
-}
-
-/*
- * TODO: implement UART1_Handler using the selected Keil device header/vector.
- * It should clear the hardware interrupt and pass each received byte to
- * BLE_UART_OnByteReceived(); parsing remains in BLE_UART_ProcessRx().
- */
