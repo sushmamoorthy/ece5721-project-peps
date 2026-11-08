@@ -1,14 +1,15 @@
 /**
  * @file bcm_state.c
- * @brief Implements the PEPS body control module state machine.
+ * @brief PEPS Body Control Module (BCM) locked/unlocked state machine.
  *
- * BLE messages are processed in the main loop, where connection and proximity
- * status determine whether the system remains locked or becomes unlocked.
- * SysTick calls BCM_OnTimerTick() to count down the walk-away timeout.
+ * The BCM does not measure radio signal strength itself. In real-BLE mode it
+ * reads the Bluetooth UART driver's connection/proximity status. In demo mode
+ * it simulates those inputs with onboard SW1 and SW2. The resulting state
+ * drives the separate PWM servo, onboard LEDs, and CAN status interface.
+ *
+ * SysTick in the team's UNCHANGED App/main.c calls BCM_OnTimerTick() at 1 ms.
  */
-
 #include "bcm_state.h"
-
 #include <stdbool.h>
 
 #include "../Drivers/ble_uart.h"
@@ -16,119 +17,233 @@
 #include "../Drivers/gpio_leds.h"
 #include "../Drivers/pwm_servo.h"
 
-/* Delay before locking after proximity is lost, in milliseconds. */
-#define DISCONNECT_TIMEOUT_MS 2000U
-
-/* Current BCM operating state. */
 static SystemState_t current_state = STATE_LOCKED;
-
-/* Remaining walk-away timeout, decremented by the SysTick handler. */
 static volatile uint32_t disconnect_timer_ms = 0U;
 
+#if BCM_DEMO_MODE
+/* Demo clock supplied by the existing 1 ms SysTick interrupt. */
+static volatile uint32_t demo_time_ms = 0U;
+
+/* Keil Watch variables: count switch events and show the active decision.
+ * Globals are deliberately volatile so they remain visible while debugging. */
+volatile uint32_t BCM_DemoSW1PressCount = 0U;
+volatile uint32_t BCM_DemoSW2PressCount = 0U;
+volatile int32_t BCM_DemoRSSI = BCM_DEMO_DISCONNECTED_DBM;
+volatile uint32_t BCM_DemoRemainingTimeoutMs = 0U;
+volatile uint32_t BCM_DemoState = (uint32_t)STATE_LOCKED;
+
+typedef struct {
+    bool candidate_pressed;  /* Instantaneous button level. */
+    bool stable_pressed;     /* Level after the debounce interval. */
+    uint32_t candidate_since_ms;
+} BCM_DemoButton_t;
+
+static BCM_DemoButton_t demo_sw1;
+static BCM_DemoButton_t demo_sw2;
+static bool demo_connected = false;
+static bool demo_proximity_confirmed = false;
+static int16_t demo_rssi_dbm = BCM_DEMO_DISCONNECTED_DBM;
+static uint32_t demo_near_started_ms = 0U;
+
 /**
- * @brief Apply outputs corresponding to the requested lock state.
- * @param unlocked true to indicate unlocked; false to indicate locked.
+ * @brief Report one event when the active-low button becomes stably pressed.
+ * @param button Debounce state for one switch.
+ * @param pressed Current button condition from GPIO (true = held down).
+ * @param now Millisecond time read from SysTick-driven demo_time_ms.
+ * @return true for a debounced press edge, false otherwise.
+ */
+static bool BCM_DemoButtonPressEvent(BCM_DemoButton_t *button,
+                                      bool pressed, uint32_t now)
+{
+    if (pressed != button->candidate_pressed) {
+        button->candidate_pressed = pressed;
+        button->candidate_since_ms = now;
+    }
+
+    if ((button->stable_pressed != button->candidate_pressed) &&
+        ((uint32_t)(now - button->candidate_since_ms) >= BCM_BUTTON_DEBOUNCE_MS)) {
+        button->stable_pressed = button->candidate_pressed;
+        return button->stable_pressed; /* Only the press edge creates an event. */
+    }
+    return false;
+}
+
+/**
+ * @brief Convert SW1/SW2 presses into simulated Bluetooth input conditions.
+ * @details SW1 toggles near/far. SW2 simulates an immediate disconnect.
+ * 'Near' becomes qualified after BCM_DEMO_NEAR_CONFIRM_MS, simulating stable
+ * multiple proximity measurements. No Bluetooth radio is used in this mode.
+ */
+static void BCM_DemoPollInputs(void)
+{
+    const uint32_t now = demo_time_ms;
+    bool near_event;
+    bool disconnect_event;
+
+    near_event = BCM_DemoButtonPressEvent(&demo_sw1,
+                                          GPIO_IsSW1Pressed(), now);
+    disconnect_event = BCM_DemoButtonPressEvent(&demo_sw2,
+                                                GPIO_IsSW2Pressed(), now);
+
+    if (near_event) {
+        BCM_DemoSW1PressCount++;
+        if (demo_connected && (demo_rssi_dbm == BCM_DEMO_NEAR_RSSI_DBM)) {
+            /* SW1 second press: still connected, phone moves out of range. */
+            demo_rssi_dbm = BCM_DEMO_FAR_RSSI_DBM;
+            demo_proximity_confirmed = false;
+        } else {
+            /* SW1 first press, or press after disconnect: reconnect near. */
+            demo_connected = true;
+            demo_rssi_dbm = BCM_DEMO_NEAR_RSSI_DBM;
+            demo_near_started_ms = now;
+            demo_proximity_confirmed = false;
+        }
+    }
+
+    /* Disconnect takes priority if both switches are pressed together. */
+    if (disconnect_event) {
+        BCM_DemoSW2PressCount++;
+        demo_connected = false;
+        demo_rssi_dbm = BCM_DEMO_DISCONNECTED_DBM;
+        demo_proximity_confirmed = false;
+    }
+
+    if (demo_connected &&
+        (demo_rssi_dbm >= BCM_DEMO_THRESHOLD_DBM) &&
+        ((uint32_t)(now - demo_near_started_ms) >= BCM_DEMO_NEAR_CONFIRM_MS)) {
+        demo_proximity_confirmed = true;
+    }
+    BCM_DemoRSSI = (int32_t)demo_rssi_dbm;
+}
+#endif /* BCM_DEMO_MODE */
+
+/**
+ * @brief Apply locked/unlocked actuator, indicator and CAN output values.
+ * @param unlocked true = green/unfolded; false = red/folded.
+ * @details CAN convention matches can_driver.h: 0=locked/folded,
+ * 1=unlocked/unfolded. Note: CAN driver may still be a placeholder.
  */
 static void BCM_ApplyStateOutputs(bool unlocked)
 {
-    /* Keep all physical outputs and the network report in sync. */
     GPIO_SetLEDs(!unlocked, unlocked);
     PWM_SetMirrorPosition(unlocked);
-    CAN_SendBCMStatus((uint8_t)!unlocked, (uint8_t)unlocked);
+    CAN_SendBCMStatus((uint8_t)unlocked, (uint8_t)unlocked);
 }
 
-/**
- * @brief Change the BCM state and update outputs when the state changes.
- * @param new_state State to enter.
- */
-static void BCM_SetState(SystemState_t new_state)
+/** @brief Change state only if it differs from the previous state. */
+static void BCM_SetState(SystemState_t next_state)
 {
-    if (new_state == current_state) {
-        return;
-    }
-
-    current_state = new_state;
-    BCM_ApplyStateOutputs(new_state == STATE_UNLOCKED);
+    if (next_state == current_state) { return; }
+    current_state = next_state;
+#if BCM_DEMO_MODE
+    BCM_DemoState = (uint32_t)current_state;
+#endif
+    BCM_ApplyStateOutputs(next_state == STATE_UNLOCKED);
 }
 
-/**
- * @brief Lock the BCM and cancel the walk-away timeout.
- */
+/** @brief Return to locked state and clear any pending walk-away timeout. */
 static void BCM_Lock(void)
 {
     disconnect_timer_ms = 0U;
     BCM_SetState(STATE_LOCKED);
 }
 
-/**
- * @brief Unlock after the BLE connection and proximity conditions are met.
- */
+/** @brief Unlock the BCM when BLE is connected and stable near is detected. */
 static void BCM_TryUnlock(void)
 {
-    disconnect_timer_ms = DISCONNECT_TIMEOUT_MS;
+    disconnect_timer_ms = BCM_DISCONNECT_TIMEOUT_MS;
     BCM_SetState(STATE_UNLOCKED);
 }
 
 /**
- * @brief Initialize the state machine and establish locked outputs.
- *
- * The LEDs, mirror, and CAN status are set to their locked baseline.
+ * @brief Initialize state, demo switches (if enabled), and locked outputs.
+ * @details Called by the existing main() after GPIO_LEDs_Init() and
+ * PWM_Servo_Init(). On startup mirror is folded and LED is red.
  */
 void BCM_Init(void)
 {
     current_state = STATE_LOCKED;
     disconnect_timer_ms = 0U;
 
-    /* Establish the locked baseline once at startup. */
+#if BCM_DEMO_MODE
+    GPIO_DemoButtons_Init();
+    demo_time_ms = 0U;
+    BCM_DemoSW1PressCount = 0U;
+    BCM_DemoSW2PressCount = 0U;
+    BCM_DemoRSSI = BCM_DEMO_DISCONNECTED_DBM;
+    BCM_DemoRemainingTimeoutMs = 0U;
+    BCM_DemoState = (uint32_t)STATE_LOCKED;
+    demo_connected = false;
+    demo_proximity_confirmed = false;
+    demo_rssi_dbm = BCM_DEMO_DISCONNECTED_DBM;
+    demo_near_started_ms = 0U;
+
+    demo_sw1.candidate_pressed = GPIO_IsSW1Pressed();
+    demo_sw1.stable_pressed = demo_sw1.candidate_pressed;
+    demo_sw1.candidate_since_ms = 0U;
+    demo_sw2.candidate_pressed = GPIO_IsSW2Pressed();
+    demo_sw2.stable_pressed = demo_sw2.candidate_pressed;
+    demo_sw2.candidate_since_ms = 0U;
+#endif
+
     GPIO_SetLEDs(true, false);
     PWM_SetMirrorPosition(false);
     CAN_SendBCMStatus(0U, 0U);
 }
 
 /**
- * @brief Decrement the walk-away timeout by one millisecond when active.
- *
- * Called from SysTick every millisecond. 
+ * @brief SysTick callback: one elapsed millisecond.
+ * @details Keeps the walk-away countdown independent of main-loop speed.
  */
 void BCM_OnTimerTick(void)
 {
     if (disconnect_timer_ms > 0U) {
         disconnect_timer_ms--;
     }
+#if BCM_DEMO_MODE
+    BCM_DemoRemainingTimeoutMs = disconnect_timer_ms;
+#endif
+#if BCM_DEMO_MODE
+    demo_time_ms++;
+#endif
 }
 
 /**
- * @brief Process pending BLE input and advance the BCM state machine.
- *
- * In the unlocked state, an explicit BLE disconnect locks immediately.
- * If BLE remains connected but proximity is lost, the BCM locks after
- * DISCONNECT_TIMEOUT_MS unless proximity returns and refreshes the timer.
+ * @brief Process connection/proximity input and run BCM state machine.
+ * @details Real mode: BLE_UART_ProcessRx() reads actual UART events.
+ * Demo mode: SW1 toggles near/far; SW2 disconnects. A close connection
+ * unlocks; walking away locks after two seconds; disconnect locks as soon
+ * as the switch event passes its 30 ms debounce interval.
  */
 void BCM_ProcessState(void)
 {
-    /*
-     * The ISR only buffers UART bytes. Parse them here, then make decisions
-     * outside interrupt context.
-     */
+    bool connected;
+    bool near;
+
+#if BCM_DEMO_MODE
+    BCM_DemoPollInputs();
+    connected = demo_connected;
+    near = connected && demo_proximity_confirmed;
+#else
     BLE_UART_ProcessRx();
+    connected = BLE_IsConnected();
+    near = connected && BLE_IsProximityDetected();
+#endif
 
     switch (current_state) {
     case STATE_LOCKED:
-        if (BLE_IsConnected() && BLE_IsProximityDetected()) {
+        if (connected && near) {
             BCM_TryUnlock();
         }
         break;
 
     case STATE_UNLOCKED:
-        if (!BLE_IsConnected()) {
-            /* An explicit app disconnect locks immediately. */
-            BCM_Lock();
-        } else if (BLE_IsProximityDetected()) {
-            /* Near RSSI refreshes the 2-second no-activity timer. */
-            disconnect_timer_ms = DISCONNECT_TIMEOUT_MS;
+        if (!connected) {
+            BCM_Lock(); /* Explicit disconnect: no 2-second wait. */
+        } else if (near) {
+            disconnect_timer_ms = BCM_DISCONNECT_TIMEOUT_MS;
         } else if (disconnect_timer_ms == 0U) {
-            /* Stable far RSSI or missing RSSI eventually triggers walk-away lock. */
-            BCM_Lock();
+            BCM_Lock(); /* Out of range for 2 seconds. */
         }
         break;
 
