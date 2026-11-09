@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 /* Change this ONE setting to switch between simulated and real BLE. */
-#define BCM_DEMO_MODE                 1U
+#define BCM_DEMO_MODE                 0U
 
 /* Timeout and demonstration assumptions. */
 #define BCM_DISCONNECT_TIMEOUT_MS    2000U
@@ -32,8 +32,11 @@ typedef enum {
 /** Initialize locked state and the outputs (red LED, folded mirror). */
 void BCM_Init(void);
 
-/** Poll BLE state (or SW1/SW2 in demo mode) and process transitions. */
-void BCM_ProcessState(void);
+/**
+ * @brief Process BLE status, or switch inputs in demo mode.
+ * @param nowMs Current application time in milliseconds.
+ */
+void BCM_ProcessState(uint32_t nowMs);
 
 /** Called once per millisecond by the EXISTING SysTick_Handler in main.c. */
 void BCM_OnTimerTick(void);
