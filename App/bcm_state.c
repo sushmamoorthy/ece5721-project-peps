@@ -12,7 +12,7 @@
 #include "bcm_state.h"
 #include <stdbool.h>
 
-#include "../Drivers/ble_uart.h"
+#include "../Drivers/bluefruit.h"
 #include "../Drivers/can_driver.h"
 #include "../Drivers/gpio_leds.h"
 #include "../Drivers/pwm_servo.h"
@@ -215,19 +215,26 @@ void BCM_OnTimerTick(void)
  * unlocks; walking away locks after two seconds; disconnect locks as soon
  * as the switch event passes its 30 ms debounce interval.
  */
-void BCM_ProcessState(void)
+void BCM_ProcessState(uint32_t nowMs)
 {
     bool connected;
     bool near;
 
 #if BCM_DEMO_MODE
+    (void)nowMs;
     BCM_DemoPollInputs();
     connected = demo_connected;
     near = connected && demo_proximity_confirmed;
 #else
-    BLE_UART_ProcessRx();
-    connected = BLE_IsConnected();
-    near = connected && BLE_IsProximityDetected();
+    BluefruitStatus status = Bluefruit_GetStatus(nowMs);
+
+    /*
+     * Only confirmed NEAR or FAR counts as a usable connection.
+     * Unknown, disconnected, stale, and fault all lock safely.
+     */
+    connected = (status == BLUEFRUIT_STATUS_NEAR ||
+                 status == BLUEFRUIT_STATUS_FAR);
+    near = (status == BLUEFRUIT_STATUS_NEAR);
 #endif
 
     switch (current_state) {

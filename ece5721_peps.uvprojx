@@ -338,9 +338,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define></Define>
+              <Define>PART_TM4C123GH6PM,TARGET_IS_TM4C123_RB1</Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>C:\ti\TivaWare_C_Series-2.2.0.295\</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -443,6 +443,21 @@
               <FileName>gpio_leds.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Drivers\gpio_leds.h</FilePath>
+            </File>
+            <File>
+              <FileName>driverlib.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>C:\ti\TivaWare_C_Series-2.2.0.295\driverlib\rvmdk\driverlib.lib</FilePath>
+            </File>
+            <File>
+              <FileName>bluefruit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Drivers\bluefruit.c</FilePath>
+            </File>
+            <File>
+              <FileName>bluefruit.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Drivers\bluefruit.h</FilePath>
             </File>
           </Files>
         </Group>

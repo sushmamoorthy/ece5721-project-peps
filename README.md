@@ -5,6 +5,10 @@ split into the main program, the state machine, and separate hardware drivers.
 The driver functions are still placeholders and will be filled in as we test
 each part.
 
+## Demo video
+
+[BLE UART Milestone 2 demo video](https://drive.google.com/file/d/16wdreq3HgWIGX5PuflpKapD2RsStNHAp/view?usp=share_link)
+
 ## Planned flow
 
  [Phone app]
