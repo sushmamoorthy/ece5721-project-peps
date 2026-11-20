@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>PART_TM4C123GH6PM,TARGET_IS_TM4C123_RB1</Define>
               <Undefine></Undefine>
-              <IncludePath>C:\ti\TivaWare_C_Series-2.2.0.295\</IncludePath>
+              <IncludePath>..\..\..\..\Tools\TivaWare\SW-TM4C\TivaWare_C_Series-2.1.4.178\</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -447,7 +447,7 @@
             <File>
               <FileName>driverlib.lib</FileName>
               <FileType>4</FileType>
-              <FilePath>C:\ti\TivaWare_C_Series-2.2.0.295\driverlib\rvmdk\driverlib.lib</FilePath>
+              <FilePath>..\..\..\..\Tools\TivaWare\SW-TM4C\TivaWare_C_Series-2.1.4.178\driverlib\rvmdk\driverlib.lib</FilePath>
             </File>
             <File>
               <FileName>bluefruit.c</FileName>
@@ -467,9 +467,6 @@
         <Group>
           <GroupName>::Device</GroupName>
         </Group>
-        <Group>
-          <GroupName>::USB</GroupName>
-        </Group>
       </Groups>
     </Target>
   </Targets>
@@ -485,12 +482,6 @@
       </component>
       <component Cclass="Device" Cgroup="Startup" Cvendor="Keil" Cversion="1.0.1" condition="TM4C123x CMSIS" ymlID="Device:Startup">
         <package name="TM4C_DFP" schemaVersion="1.2" url="http://www.keil.com/pack/" vendor="Keil" version="1.1.0"/>
-        <targetInfos>
-          <targetInfo name="Target_1"/>
-        </targetInfos>
-      </component>
-      <component Cbundle="MDK" Cclass="USB" Cgroup="CORE" Cvendor="Keil" Cversion="8.0.0" condition="CMSIS Core with RTOS" ymlID="USB&amp;MDK:CORE">
-        <package name="MDK-Middleware" schemaVersion="1.7.36" url="https://www.keil.com/pack/" vendor="Keil" version="8.1.0"/>
         <targetInfos>
           <targetInfo name="Target_1"/>
         </targetInfos>
@@ -524,14 +515,6 @@
         <component Cbundle="MDK" Cclass="File System" Cgroup="CORE" Cvendor="Keil" Cversion="8.0.2" condition="CMSIS Core with RTOS and File System I/O"/>
         <package name="MDK-Middleware" schemaVersion="1.7.36" url="https://www.keil.com/pack/" vendor="Keil" version="8.1.0"/>
         <targetInfos/>
-      </file>
-      <file attr="config" category="header" name="Components\USB\Config\USB_Debug.h" version="8.0.0">
-        <instance index="0">RTE\USB\USB_Debug.h</instance>
-        <component Cbundle="MDK" Cclass="USB" Cgroup="CORE" Cvendor="Keil" Cversion="8.0.0" condition="CMSIS Core with RTOS"/>
-        <package name="MDK-Middleware" schemaVersion="1.7.36" url="https://www.keil.com/pack/" vendor="Keil" version="8.1.0"/>
-        <targetInfos>
-          <targetInfo name="Target_1"/>
-        </targetInfos>
       </file>
     </files>
   </RTE>
