@@ -62,12 +62,10 @@ static volatile uint32_t systemTimeMs = 0U;
 
 	int main(void)
 	{
-			/* TODO: confirm the selected clock configuration in the Keil device pack. */
 			SystemCoreClockUpdate();
 		
 			Debug_UART_Init();
 
-			/* TODO: configure the 1 ms SysTick reload for the confirmed clock. */
 			(void)SysTick_Config(SystemCoreClock / 1000U);
 
 			/* Initialize hardware drivers before the FSM applies its locked outputs. */
