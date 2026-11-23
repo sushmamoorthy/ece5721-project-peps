@@ -1,0 +1,135 @@
+<mxfile host="app.diagrams.net" agent="Copilot">
+  <diagram id="peps-overall-flow" name="PEPS Overall Flow">
+    <mxGraphModel dx="2759" dy="1222" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#17365D;" value="&lt;div&gt;Smartphone-Authenticated BLE proximity key &amp;amp; Adaptive&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(23, 54, 93), rgb(171, 197, 231));&quot;&gt;BCM&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(23, 54, 93), rgb(171, 197, 231));&quot;&gt;— Overall Flow&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="1080" x="130" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#52667A;" value="Classroom prototype flow | BLE/UART input • TM4C123 decision • local actuation • CAN status reporting" vertex="1">
+          <mxGeometry height="30" width="820" x="290" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#D9EAF7;strokeColor=#6C8EBF;fontSize=14;fontStyle=1;" value="Driver opens&#xa;smartphone app" vertex="1">
+          <mxGeometry height="60" width="200" x="490" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="connect" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#D9EAF7;strokeColor=#6C8EBF;fontSize=14;" value="Connect phone to&#xa;BLE module" vertex="1">
+          <mxGeometry height="60" width="200" x="490" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="telemetry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#EAF2F8;strokeColor=#6C8EBF;fontSize=14;" value="BLE module sends connection&#xa;and RSSI data over UART" vertex="1">
+          <mxGeometry height="70" width="200" x="490" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="decision" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=14;fontStyle=1;" value="TM4C123 evaluates&#xa;authentication and RSSI" vertex="1">
+          <mxGeometry height="70" width="200" x="490" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="authorized" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=14;fontStyle=1;" value="Authorized and&#xa;proximity stable?" vertex="1">
+          <mxGeometry height="110" width="210" x="485" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="safe" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#FCE4D6;strokeColor=#D79B00;fontSize=14;" value="Stay locked / fail safe&#xa;Red LED • mirror folded" vertex="1">
+          <mxGeometry height="70" width="230" x="110" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="entry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=14;fontStyle=1;" value="Entry state&#xa;Green LED • unfold mirror&#xa;(TM4C123 PWM to servo)" vertex="1">
+          <mxGeometry height="80" width="200" x="490" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="canentry" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=14;" value="Publish access and mirror&#xa;state frames on CAN" vertex="1">
+          <mxGeometry height="70" width="200" x="490" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="canreceiver" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=14;" value="CAN transceiver + bus&#xa;USB-CAN analyzer&#xa;or receiving Node B" vertex="1">
+          <mxGeometry height="80" width="230" x="900" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="leave" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=14;fontStyle=1;" value="Phone leaves range&#xa;or BLE disconnects?" vertex="1">
+          <mxGeometry height="110" width="210" x="485" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="timeout" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=14;" value="Start low-RSSI /&#xa;disconnect timeout" vertex="1">
+          <mxGeometry height="70" width="230" x="110" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="stillgone" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=14;fontStyle=1;" value="Still disconnected&#xa;after timeout?" vertex="1">
+          <mxGeometry height="110" width="230" x="110" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="lock" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#F8CECC;strokeColor=#B85450;fontSize=14;fontStyle=1;" value="Return to locked state&#xa;Red LED • fold mirror" vertex="1">
+          <mxGeometry height="70" width="200" x="490" y="1095" as="geometry" />
+        </mxCell>
+        <mxCell id="canlock" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=14;" value="Publish locked / folded&#xa;state frame on CAN" vertex="1">
+          <mxGeometry height="70" width="230" x="900" y="1095" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="start" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="connect">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="connect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="telemetry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="telemetry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="decision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" edge="1" parent="1" source="decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="authorized">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" edge="1" parent="1" source="authorized" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B85450;fontColor=#B85450;fontStyle=1;" target="safe" value="No">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" edge="1" parent="1" source="authorized" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#82B366;fontColor=#548235;fontStyle=1;" target="entry" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" edge="1" parent="1" source="entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="canentry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge8" edge="1" parent="1" source="canentry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#6C8EBF;" target="canreceiver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge9" edge="1" parent="1" source="canentry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="leave">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge10" edge="1" parent="1" source="leave" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#82B366;fontColor=#548235;" target="telemetry" value="No — keep monitoring">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="995" />
+              <mxPoint x="780" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge11" edge="1" parent="1" source="leave" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#D6B656;fontColor=#9A7B00;fontStyle=1;" target="timeout" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge12" edge="1" parent="1" source="timeout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="stillgone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge13" edge="1" parent="1" source="stillgone" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#82B366;fontColor=#548235;" target="entry" value="No — resume session">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="55" y="1145" />
+              <mxPoint x="55" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge14" edge="1" parent="1" source="stillgone" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B85450;fontColor=#B85450;fontStyle=1;" target="lock" value="Yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge15" edge="1" parent="1" source="lock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;" target="canlock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge16" edge="1" parent="1" source="canlock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#6C8EBF;" target="canreceiver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge17" edge="1" parent="1" source="canlock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#52667A;fontColor=#52667A;" target="telemetry" value="Continue monitoring">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1200" y="1130" />
+              <mxPoint x="1200" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge18" edge="1" parent="1" source="safe" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#D6B656;fontColor=#9A7B00;" target="telemetry" value="Continue checking">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="70" y="605" />
+              <mxPoint x="70" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=12;align=left;spacing=8;" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;- TM4C123 as the central controller.&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;- BLE/UART provides the phone and proximity information&lt;/div&gt;&lt;div&gt;- the MCU makes the access decision and controls the prototype’s(servo and LEDs).&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;- CAN carries the resulting state to another node or an analyzer.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(#000000, var(--ge-light-color, #ffffff));&quot;&gt;Design note: CAN reports the MCU’s state and should not be required for the local fail-safe lock decision.&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="160" width="315" x="805" y="450" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
