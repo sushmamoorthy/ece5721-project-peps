@@ -1,8 +1,8 @@
-# ECE 5721 PEPS Project
+# ECE 5721
 
 ## 1. Project Name and Group Members
 
-**Project name:** BLE Proximity-Based Vehicle Access and Adaptive Body Control Module
+**Project name:** BLE Proximity-Based Vehicle Access and Adaptive Body Control Module 
 (App-Initiated Vehicle Access and Mirror Control)
 
 **Team members:**
@@ -11,14 +11,9 @@
 - Mrunalini Desai
 - Subashree Anandhavel
 
-This project implements a TM4C123GH6PM Passive Entry Passive Start (PEPS)
-Adaptive Body Control Module classroom prototype. It combines a
-phone-connected BLE interface, onboard state machine, LaunchPad indicators,
+This project implements a TM4C123GH6PM Adaptive Body Control Module classroom prototype. 
+It combines a phone-connected BLE interface, onboard state machine, LaunchPad indicators,
 servo mirror control, and a classic CAN status interface.
-
-The source currently runs in BCM demo mode (`BCM_DEMO_MODE = 1U` in
-`App/bcm_state.h`). Demo mode uses the LaunchPad switches instead of live BLE
-and is intended for CAN, actuator, and state-machine testing.
 
 ## 2. Hardware Used
 
@@ -62,14 +57,18 @@ The firmware has a successful no-warning build recorded in `keil-build.log`.
 
 ## Demo videos
 
+Final Demo Video of complete project:
+
+Demo videos taken until Milestone 2:
 - [LED and SERVO Demo Video] (https://drive.google.com/file/d/15v2vDEeWNCRvdJRXYTmpb0gX8tD--dBs/view)
 - [BLE UART Milestone 2 demo video](https://drive.google.com/file/d/16wdreq3HgWIGX5PuflpKapD2RsStNHAp/view?usp=share_link)
 - [CAN demo video] (https://drive.google.com/file/d/1zQXVMlC1f_SCCExTEJCU-SsuCUKhtQFx/view?usp=sharing)
+                   (https://drive.google.com/file/d/1epMnrLED0H3RvSHkOQ4uojeEFwHxvPtR/view?usp=sharing)
 
 ## Implemented system flow
 
 ```
-Demo mode: SW1 / SW2 or real BLE status via Bluefruit service
+ real BLE status via Bluefruit service
                          |
                          v
                   App/bcm_state.c
